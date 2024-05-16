@@ -1,18 +1,20 @@
 #!/bin/bash
 
-projectname="jenkins-ansible-auto-discovery"
+projectname="TSPADP"
 prometheus_server_tag="$projectname-promgraf"
-private_ip_file="privateip.txt"
+private_ip_file="/tmp/privateip.txt"  # Storing in /tmp directory on the server
 prometheus_config="/etc/prometheus/prometheus.yml"
 target_port="9100"
 sleep_duration=60
-SSH_KEY_PATH="~/.ssh/id_rsa"
+SSH_KEY_PATH="/home/ubuntu/.ssh/id_rsa"  # Change 'your_username' to your actual username
+
 
 while true; do
     # Step 1: AWS CLI login
-    aws configure set aws_access_key_id YOUR_ACCESS_KEY_ID
-    aws configure set aws_secret_access_key YOUR_SECRET_ACCESS_KEY
-    aws configure set default.region YOUR_REGION
+
+    aws configure set aws_access_key_id ${aws_iam_access_key.prom_user_access_key.id}" ubuntu
+    aws configure set aws_secret_access_key ${aws_iam_access_key.prom_user_access_key.secret}" ubuntu
+    aws configure set default.region eu-west-2" ubuntu
 
     # Step 2: Identify new servers
     new_servers=$(aws ec2 describe-instances --filters "Name=tag-key,Values=$projectname-*" --query 'Reservations[*].Instances[*].PrivateIpAddress' --output text)
@@ -26,18 +28,12 @@ while true; do
         
         if [ -n "$prometheus_ip" ]; then
             # Step 5: SSH into prometheus server
-            scp -i $SSH_KEY_PATH "$private_ip_file" ubuntu@$prometheus_ip:/tmp/
-            ssh -i $SSH_KEY_PATH ubuntu@$prometheus_ip << EOF
-                # Step 6: Copy private IP list
-                scp user@local_machine:"$private_ip_file" /tmp/
-                
-                # Step 7: Update prometheus.yml dynamically
-                sed -i '/- targets:/r /tmp/privateip.txt' "$prometheus_config"
-                systemctl restart prometheus
+            scp -i "$SSH_KEY_PATH" "$private_ip_file" ubuntu@$prometheus_ip:/tmp/
+            ssh -i "$SSH_KEY_PATH" ubuntu@$prometheus_ip << EOF
+                # Step 6: Update prometheus.yml dynamically
+                sed -i "/- targets:/s/\]$/,$(echo -n "['"; cat $private_ip_file | tr '\n' ',' | sed 's/,$//' | sed "s/$/:$target_port', /")]/" "$prometheus_config"
+                sudo systemctl daemon-reload
+                sudo systemctl restart prometheus
 EOF
-        fi
     fi
-    
-    # Step 8: Wait for 60 seconds before looping
-    sleep $sleep_duration
-done
+fi

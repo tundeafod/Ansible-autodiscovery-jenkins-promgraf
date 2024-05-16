@@ -9,3 +9,8 @@ variable "nexus-ip" {}
 variable "jenkins_ip" {}
 variable "Sonarqube-ip" {}
 variable "ansible_ip" {}
+variable "prom_server_discovery-script" {}
+variable "private_key" {}
+
+
+
