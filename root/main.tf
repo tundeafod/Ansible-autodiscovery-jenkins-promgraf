@@ -97,9 +97,9 @@ module "monitoring" {
   ansible_ip                   = module.ansible.ansible_ip
   Sonarqube-ip                 = module.sonarqube.sonarqube_ip
   prom_server_discovery-script = "${path.root}/module/monitoring/prod-inventory-bash-script.sh"
-
-  elb-subnets = [module.vpc.publicsub1, module.vpc.publicsub2, module.vpc.publicsub3]
-  cert-arn    = module.acm.acm_certificate
+  private_key                  = module.keypair.private-key-id
+  elb-subnets                  = [module.vpc.publicsub1, module.vpc.publicsub2, module.vpc.publicsub3]
+  cert-arn                     = module.acm.acm_certificate
 }
 
 module "prod-asg" {
