@@ -2,15 +2,31 @@ locals {
   monitoring-script = <<-EOF
 #!/bin/bash
 
-#Update instance and install tools (wget, unzip, aws cli) 
-sudo apt update -y
-sudo apt install wget -y
-sudo apt install unzip -y
-curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip"
-unzip awscliv2.zip
-sudo ./aws/install
-sudo ln -svf /usr/local/bin/aws /usr/bin/aws #This command is often used to make the AWS Command Line Interface (AWS CLI) available globally by creating a symbolic link in a directory that is included in the system's PATH
+sudo apt update
+
+# # Update instance and install tools (wget, unzip, aws cli) 
+# sudo apt install wget unzip -y
+# wget "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -O "awscliv2.zip"
+# unzip awscliv2.zip
+# sudo ./aws/install
+
+#configuring the aws cli on your ubuntu user
+sudo su -c "aws configure set aws_access_key_id ${aws_iam_access_key.prom_user_access_key.id}" ubuntu
+sudo su -c "aws configure set aws_secret_access_key ${aws_iam_access_key.prom_user_access_key.secret}" ubuntu
+sudo su -c "aws configure set default.region eu-west-2" ubuntu
+sudo su -c "aws configure set default.output text" ubuntu
+
+#make access key for environment variable
+export AWS_ACCESS_KEY_ID=${aws_iam_access_key.prom_user_access_key.id}
+export AWS_SECRET_ACCESS_KEY=${aws_iam_access_key.prom_user_access_key.secret}
+export AWS_DEFAULT_REGION=eu-west-2
+export AWS_DEFAULT_OUTPUT=text
+
+# Disable SSH strict host checking
 sudo bash -c 'echo "StrictHostKeyChecking No" >> /etc/ssh/ssh_config'
+
+# Add AWS CLI to system PATH
+sudo ln -svf /usr/local/bin/aws /usr/bin/aws
 
 # create a group and user 
 sudo groupadd --system prometheus
@@ -75,6 +91,12 @@ scrape_configs:
   - job_name: 'Infra node exporter'
     static_configs:
       - targets: ['localhost:9100', '${var.nexus-ip}:9100', '${var.jenkins_ip}:9100', '${var.Sonarqube-ip}:9100', '${var.ansible_ip}:9100']
+
+  - job_name: 'ec2-service-discovery'
+    ec2_sd_configs:
+      - region: eu-west-2
+        access_key: '${aws_iam_access_key.prom_user_access_key.id}'
+        secret_key: '${aws_iam_access_key.prom_user_access_key.secret}'
 EOT
 
 sudo systemctl daemon-reload
@@ -116,6 +138,7 @@ sudo systemctl start node_exporter
 
 curl http://localhost:9100/metrics
 
+
 # install grafana
 sudo apt update
 sudo apt install -y gnupg2 curl software-properties-common
@@ -124,19 +147,6 @@ sudo add-apt-repository "deb https://packages.grafana.com/oss/deb stable main"
 sudo apt update
 sudo apt -y install grafana
 sudo systemctl enable --now grafana-server
-
-# copying files from local machines into Prometheus server
-sudo echo "${file(var.prom_server_discovery-script)}" >> /etc/prometheus/prom_server_update.sh 
-sudo echo "${var.private_key}" >> /home/ubuntu/.ssh/id_rsa
-
-
-# Give the right permissions to the files copied from the local machine into the Prometheus server
-sudo chown -R ubuntu:ubuntu /etc/prometheus
-sudo chmod 400 /etc/prometheus/key.pem
-sudo chmod 755 /etc/prometheus/prom_server_update.sh
-
-#creating crontab to execute auto discovery script
-echo "* * * * * ubuntu sh /etc/prometheus/prom_server_update.sh.sh" >> /etc/crontab
 
 sudo hostnamectl set-hostname monitoring
 EOF
