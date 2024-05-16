@@ -2,7 +2,15 @@ locals {
   monitoring-script = <<-EOF
 #!/bin/bash
 
-sudo apt update
+#Update instance and install tools (wget, unzip, aws cli) 
+sudo apt update -y
+sudo apt install wget -y
+sudo apt install unzip -y
+curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip"
+unzip awscliv2.zip
+sudo ./aws/install
+sudo ln -svf /usr/local/bin/aws /usr/bin/aws #This command is often used to make the AWS Command Line Interface (AWS CLI) available globally by creating a symbolic link in a directory that is included in the system's PATH
+sudo bash -c 'echo "StrictHostKeyChecking No" >> /etc/ssh/ssh_config'
 
 # create a group and user 
 sudo groupadd --system prometheus
