@@ -86,18 +86,20 @@ module "database" {
 }
 
 module "monitoring" {
-  source       = "../module/monitoring"
-  ami          = "ami-053a617c6207ecc7b"
-  promgraf-sg  = module.securitygroup.promgraf_sg
-  subnet_id    = module.vpc.publicsub1
-  keypair      = module.keypair.public-key-id
-  name         = "${local.name}-promgraf"
-  nexus-ip     = module.nexus.nexus_ip
-  jenkins_ip   = module.jenkins.jenkins_ip
-  ansible_ip   = module.ansible.ansible_ip
-  Sonarqube-ip = module.sonarqube.sonarqube_ip
-  elb-subnets  = [module.vpc.publicsub1, module.vpc.publicsub2, module.vpc.publicsub3]
-  cert-arn     = module.acm.acm_certificate
+  source                       = "../module/monitoring"
+  ami                          = "ami-053a617c6207ecc7b"
+  promgraf-sg                  = module.securitygroup.promgraf_sg
+  subnet_id                    = module.vpc.publicsub1
+  keypair                      = module.keypair.public-key-id
+  name                         = "${local.name}-promgraf"
+  nexus-ip                     = module.nexus.nexus_ip
+  jenkins_ip                   = module.jenkins.jenkins_ip
+  ansible_ip                   = module.ansible.ansible_ip
+  Sonarqube-ip                 = module.sonarqube.sonarqube_ip
+  prom_server_discovery-script = "${path.root}/module/monitoring/prod-inventory-bash-script.sh"
+
+  elb-subnets = [module.vpc.publicsub1, module.vpc.publicsub2, module.vpc.publicsub3]
+  cert-arn    = module.acm.acm_certificate
 }
 
 module "prod-asg" {
