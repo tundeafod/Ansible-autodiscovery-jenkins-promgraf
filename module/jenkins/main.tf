@@ -23,7 +23,6 @@ resource "aws_elb" "jenkins_lb" {
     lb_protocol        = "https"
     ssl_certificate_id = var.cert-arn
   }
-
   health_check {
     healthy_threshold   = 2
     unhealthy_threshold = 2
