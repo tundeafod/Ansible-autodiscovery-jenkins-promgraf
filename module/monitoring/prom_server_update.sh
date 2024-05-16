@@ -12,9 +12,9 @@ SSH_KEY_PATH="/home/ubuntu/.ssh/id_rsa"  # Change 'your_username' to your actual
 while true; do
     # Step 1: AWS CLI login
 
-    aws configure set aws_access_key_id ${aws_iam_access_key.prom_user_access_key.id}" ubuntu
-    aws configure set aws_secret_access_key ${aws_iam_access_key.prom_user_access_key.secret}" ubuntu
-    aws configure set default.region eu-west-2" ubuntu
+    aws configure set aws_access_key_id "${aws_iam_access_key.prom_user_access_key.id}"
+    aws configure set aws_secret_access_key "${aws_iam_access_key.prom_user_access_key.secret}"
+    aws configure set default.region "eu-west-2"
 
     # Step 2: Identify new servers
     new_servers=$(aws ec2 describe-instances --filters "Name=tag-key,Values=$projectname-*" --query 'Reservations[*].Instances[*].PrivateIpAddress' --output text)
