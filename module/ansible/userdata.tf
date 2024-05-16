@@ -13,7 +13,7 @@ sudo bash -c 'echo "StrictHostKeyChecking No" >> /etc/ssh/ssh_config'
 #configuring awscli on the ansible server
 sudo su -c "aws configure set aws_access_key_id ${aws_iam_access_key.ansible_user_key.id}" ec2-user
 sudo su -c "aws configure set aws_secret_access_key ${aws_iam_access_key.ansible_user_key.secret}" ec2-user
-sudo su -c "aws configure set default.region eu-west-3" ec2-user
+sudo su -c "aws configure set default.region eu-west-2" ec2-user
 sudo su -c "aws configure set default.output text" ec2-user
 
 # Set Access_keys as ENV Variables
@@ -58,6 +58,25 @@ sudo systemctl daemon-reload
 sudo systemctl enable node_exporter
 sudo systemctl start node_exporter
 
+# copying files from local machines into Ansible server
+sudo echo "${file(var.staging-MyPlaybook)}" >> /etc/ansible/stage-playbook.yml 
+sudo echo "${file(var.staging-discovery-script)}" >> /etc/ansible/stage-bash-script.sh
+sudo echo "${file(var.prod-MyPlaybook)}" >> /etc/ansible/prod-playbook.yml
+sudo echo "${file(var.prod-discovery-script)}" >> /etc/ansible/prod-bash-script.sh 
+sudo echo "${var.private_key}" >> /home/ec2-user/.ssh/id_rsa
+sudo bash -c 'echo "NEXUS_IP: ${var.nexus-ip}:8085" > /etc/ansible/ansible_vars_file.yml'
+
+# Give the right permissions to the files copied from the local machine into the ansible server
+sudo chown -R ec2-user:ec2-user /etc/ansible
+sudo chmod 400 /etc/ansible/key.pem
+sudo chmod 755 /etc/ansible/stage-bash-script.sh 
+sudo chmod 755 /etc/ansible/prod-bash-script.sh
+
+#creating crontab to execute auto discovery script
+echo "* * * * * ec2-user sh /etc/ansible/stage-bash-script.sh" > /etc/crontab
+echo "* * * * * ec2-user sh /etc/ansible/prod-bash-script.sh" >> /etc/crontab
 sudo hostnamectl set-hostname Ansible
 EOF
 }
+
+
