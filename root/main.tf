@@ -72,6 +72,10 @@ module "ansible" {
   name        = "${local.name}-ansible"
   nexus-ip    = module.nexus.nexus_ip
   private_key = module.keypair.private-key-id
+  staging-MyPlaybook       = "${path.root}./module/ansible/stage-playbook.yaml"
+  prod-MyPlaybook          = "${path.root}./module/ansible/prod-playbook.yaml"
+  staging-discovery-script = "${path.root}./module/ansible/stage-inventory-bash-script.sh"
+  prod-discovery-script    = "${path.root}./module/ansible/prod-inventory-bash-script.sh"
 }
 
 module "database" {
