@@ -20,3 +20,6 @@ variable "prom_lb_zone_id" {}
 variable "graf_domain_name" {}
 variable "graf_lb_dns_name" {}
 variable "graf_lb_zone_id" {}
+variable "alertmanager_domain_name" {}
+variable "alertmanager_lb_dns_name" {}
+variable "alertmanager_lb_zone_id" {}

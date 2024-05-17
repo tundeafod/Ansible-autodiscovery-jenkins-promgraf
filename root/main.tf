@@ -64,14 +64,14 @@ module "jenkins" {
   cert-arn   = module.acm.acm_certificate
 }
 module "ansible" {
-  source      = "../module/ansible"
-  ami-redhat  = "ami-035cecbff25e0d91e"
-  subnet-id   = module.vpc.publicsub2
-  ansible-sg  = module.securitygroup.ansible_sg
-  key-name    = module.keypair.public-key-id
-  name        = "${local.name}-ansible"
-  nexus-ip    = module.nexus.nexus_ip
-  private_key = module.keypair.private-key-id
+  source                   = "../module/ansible"
+  ami-redhat               = "ami-035cecbff25e0d91e"
+  subnet-id                = module.vpc.publicsub2
+  ansible-sg               = module.securitygroup.ansible_sg
+  key-name                 = module.keypair.public-key-id
+  name                     = "${local.name}-ansible"
+  nexus-ip                 = module.nexus.nexus_ip
+  private_key              = module.keypair.private-key-id
   staging-MyPlaybook       = "${path.root}./module/ansible/stage-playbook.yaml"
   prod-MyPlaybook          = "${path.root}./module/ansible/prod-playbook.yaml"
   staging-discovery-script = "${path.root}./module/ansible/stage-inventory-bash-script.sh"
@@ -153,27 +153,30 @@ module "acm" {
 }
 
 module "route53" {
-  source                = "../module/route53"
-  domain-name           = "tundeafod.click"
-  jenkins_domain_name   = "jenkins.tundeafod.click"
-  jenkins_lb_dns_name   = module.jenkins.jenkins_dns_name
-  jenkins_lb_zone_id    = module.jenkins.jenkins_zone_id
-  nexus_domain_name     = "nexus.tundeafod.click"
-  nexus_lb_dns_name     = module.nexus.nexus_dns_name
-  nexus_lb_zone_id      = module.nexus.nexus_zone_id
-  sonarqube_domain_name = "sonarqube.tundeafod.click"
-  sonarqube_lb_dns_name = module.sonarqube.sonarqube_dns_name
-  sonarqube_lb_zone_id  = module.sonarqube.sonarqube_zone_id
-  prod_domain_name      = "prod.tundeafod.click"
-  prod_lb_dns_name      = module.prod-lb.prod-lb-dns
-  prod_lb_zone_id       = module.prod-lb.prod-lb-zoneid
-  stage_domain_name     = "stage.tundeafod.click"
-  stage_lb_dns_name     = module.stage-lb.stage-lb-dns
-  stage_lb_zone_id      = module.stage-lb.stage-lb-zoneid
-  prom_domain_name      = "prom.tundeafod.click"
-  prom_lb_dns_name      = module.monitoring.prom_dns_name
-  prom_lb_zone_id       = module.monitoring.prom_zone_id
-  graf_domain_name      = "graf.tundeafod.click"
-  graf_lb_dns_name      = module.monitoring.graf_dns_name
-  graf_lb_zone_id       = module.monitoring.graf_zone_id
+  source                   = "../module/route53"
+  domain-name              = "tundeafod.click"
+  jenkins_domain_name      = "jenkins.tundeafod.click"
+  jenkins_lb_dns_name      = module.jenkins.jenkins_dns_name
+  jenkins_lb_zone_id       = module.jenkins.jenkins_zone_id
+  nexus_domain_name        = "nexus.tundeafod.click"
+  nexus_lb_dns_name        = module.nexus.nexus_dns_name
+  nexus_lb_zone_id         = module.nexus.nexus_zone_id
+  sonarqube_domain_name    = "sonarqube.tundeafod.click"
+  sonarqube_lb_dns_name    = module.sonarqube.sonarqube_dns_name
+  sonarqube_lb_zone_id     = module.sonarqube.sonarqube_zone_id
+  prod_domain_name         = "prod.tundeafod.click"
+  prod_lb_dns_name         = module.prod-lb.prod-lb-dns
+  prod_lb_zone_id          = module.prod-lb.prod-lb-zoneid
+  stage_domain_name        = "stage.tundeafod.click"
+  stage_lb_dns_name        = module.stage-lb.stage-lb-dns
+  stage_lb_zone_id         = module.stage-lb.stage-lb-zoneid
+  prom_domain_name         = "prom.tundeafod.click"
+  prom_lb_dns_name         = module.monitoring.prom_dns_name
+  prom_lb_zone_id          = module.monitoring.prom_zone_id
+  graf_domain_name         = "graf.tundeafod.click"
+  graf_lb_dns_name         = module.monitoring.graf_dns_name
+  graf_lb_zone_id          = module.monitoring.graf_zone_id
+  alertmanager_domain_name = "alertmanager.tundeafod.click"
+  alertmanager_lb_dns_name = module.monitoring.alertmanager_dns_name
+  alertmanager_lb_zone_id  = module.monitoring.alertmanager_zone_id
 }

@@ -38,6 +38,17 @@ resource "aws_route53_record" "graf_record" {
   }
 }
 
+resource "aws_route53_record" "alertmanager_record" {
+  zone_id = data.aws_route53_zone.route53_zone.zone_id
+  name    = var.graf_domain_name
+  type    = "A"
+  alias {
+    name                   = var.alertmanager_lb_dns_name
+    zone_id                = var.alertmanager_lb_zone_id
+    evaluate_target_health = true
+  }
+}
+
 resource "aws_route53_record" "nexus_record" {
   zone_id = data.aws_route53_zone.route53_zone.zone_id
   name    = var.nexus_domain_name

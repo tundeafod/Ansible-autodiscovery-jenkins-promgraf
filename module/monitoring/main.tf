@@ -77,6 +77,38 @@ resource "aws_elb" "graf" {
   }
 }
 
+resource "aws_elb" "alertmanger" {
+  name            = "elb-alertmanager"
+  subnets         = var.elb-subnets
+  security_groups = [var.promgraf-sg]
+  listener {
+    instance_port      = 9093
+    instance_protocol  = "http"
+    lb_port            = 443
+    lb_protocol        = "https"
+    ssl_certificate_id = var.cert-arn
+  }
+
+  health_check {
+    healthy_threshold   = 2
+    unhealthy_threshold = 2
+    timeout             = 3
+    target              = "TCP:9093"
+    interval            = 30
+  }
+
+
+  instances                   = [aws_instance.promgraf-server.id]
+  cross_zone_load_balancing   = true
+  idle_timeout                = 400
+  connection_draining         = true
+  connection_draining_timeout = 400
+
+  tags = {
+    Name = "alertmanager-elb"
+  }
+}
+
 resource "aws_elb" "nodeexporter" {
   name            = "elb-nodeexporter"
   subnets         = var.elb-subnets

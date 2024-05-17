@@ -103,6 +103,58 @@ sudo systemctl daemon-reload
 sudo systemctl enable prometheus
 sudo systemctl start prometheus
 
+# create Alert Manager
+# Download Prometheus AlertManager
+wget https://github.com/prometheus/alertmanager/releases/download/v0.27.0/alertmanager-0.27.0.linux-amd64.tar.gz
+
+#Create User
+sudo groupadd -f alertmanager
+sudo useradd -g alertmanager --no-create-home --shell /bin/false alertmanager
+sudo mkdir -p /etc/alertmanager/templates
+sudo mkdir /var/lib/alertmanager
+sudo chown alertmanager:alertmanager /etc/alertmanager
+sudo chown alertmanager:alertmanager /var/lib/alertmanager
+
+# Unpack Prometheus AlertManager Binary
+tar -xvf alertmanager-0.27.0.linux-amd64.tar.gz
+mv alertmanager-0.27.0.linux-amd64 alertmanager-files
+
+# Install Prometheus AlertManager
+sudo cp alertmanager-files/alertmanager /usr/bin/
+sudo cp alertmanager-files/amtool /usr/bin/
+sudo chown alertmanager:alertmanager /usr/bin/alertmanager
+sudo chown alertmanager:alertmanager /usr/bin/amtool
+
+#Install Prometheus AlertManager Configuration File
+sudo cp alertmanager-files/alertmanager.yml /etc/alertmanager/alertmanager.yml
+sudo chown alertmanager:alertmanager /etc/alertmanager/alertmanager.yml
+
+# create alertmanger service file to start Alertmanger
+sudo cat <<EOT>> /usr/lib/systemd/system/alertmanager.service
+[Unit]
+Description=AlertManager
+Wants=network-online.target
+After=network-online.target
+
+[Service]
+User=alertmanager
+Group=alertmanager
+Type=simple
+ExecStart=/usr/bin/alertmanager \
+    --config.file /etc/alertmanager/alertmanager.yml \
+    --storage.path /var/lib/alertmanager/
+
+[Install]
+WantedBy=multi-user.target
+EOT
+
+sudo chmod 664 /usr/lib/systemd/system/alertmanager.service
+
+sudo systemctl daemon-reload 
+sudo systemctl start alertmanager
+sudo systemctl enable alertmanager.service
+
+
 # create node exporter user
 sudo useradd --no-create-home node_exporter
 
