@@ -77,7 +77,7 @@ resource "aws_elb" "graf" {
   }
 }
 
-resource "aws_elb" "alertmanger" {
+resource "aws_elb" "alertmanager" {
   name            = "elb-alertmanager"
   subnets         = var.elb-subnets
   security_groups = [var.promgraf-sg]
