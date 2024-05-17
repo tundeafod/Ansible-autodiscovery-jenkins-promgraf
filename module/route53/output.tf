@@ -10,6 +10,10 @@ output "graf_record" {
   value = aws_route53_record.graf_record.id
 }
 
+output "alertmanager_record" {
+  value = aws_route53_record.alertmanager_record.id
+}
+
 output "nexus_record" {
   value = aws_route53_record.nexus_record.id
 }

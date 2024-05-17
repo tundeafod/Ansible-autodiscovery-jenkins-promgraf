@@ -25,3 +25,11 @@ output "nodeexporter_dns_name" {
 output "nodeexporter_zone_id" {
   value = aws_elb.nodeexporter.zone_id
 }
+
+output "alertmanager_dns_name" {
+  value = aws_elb.alertmanager.dns_name
+}
+
+output "alertmanager_zone_id" {
+  value = aws_elb.alertmanager.zone_id
+}
