@@ -8,6 +8,7 @@ sudo yum-config-manager --add-repo https://download.docker.com/linux/centos/dock
 sudo yum install docker-ce -y
 
 # Add a registry to the Docker daemon configuration to allow insecure communication (without TLS verification) with a Docker registry on port 8085
+# This is for docker to be able to pull images from the Nexus Repo 
 sudo cat <<EOT>> /etc/docker/daemon.json
 {
   "insecure-registries" : ["${nexus-ip}:8085"]

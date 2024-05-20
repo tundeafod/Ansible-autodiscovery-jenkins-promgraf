@@ -18,3 +18,7 @@ output "ansible_ip" {
 output "promgraf_ip" {
   value = module.monitoring.promgraf_ip
 }
+
+output "rds-endpoint" {
+  value = module.database.rds-endpoint
+}
