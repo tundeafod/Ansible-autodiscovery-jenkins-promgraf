@@ -22,3 +22,8 @@ output "promgraf_ip" {
 output "rds-endpoint" {
   value = module.database.rds-endpoint
 }
+
+output "nexus_pub_ip" {
+  value = module.nexus.nexus_pub_ip
+}
+

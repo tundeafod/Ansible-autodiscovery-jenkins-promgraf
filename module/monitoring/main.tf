@@ -2,7 +2,7 @@
 
 resource "aws_instance" "promgraf-server" {
   ami                         = var.ami
-  instance_type               = "t2.medium"
+  instance_type               = "t2.xlarge"
   key_name                    = var.keypair
   vpc_security_group_ids      = [var.promgraf-sg]
   subnet_id                   = var.subnet_id
