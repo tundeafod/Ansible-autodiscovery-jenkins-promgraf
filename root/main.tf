@@ -60,7 +60,7 @@ module "jenkins" {
   jenkins-sg = module.securitygroup.jenkins_sg
   key-name   = module.keypair.public-key-id
   name       = "${local.name}-jenkins"
-  nexus-ip   = module.nexus.nexus_ip
+  nexus-ip   = module.nexus.nexus_pub_ip
   subnet-elb = [module.vpc.publicsub1, module.vpc.publicsub2, module.vpc.publicsub3]
   cert-arn   = module.acm.acm_certificate
 }
@@ -71,7 +71,7 @@ module "ansible" {
   ansible-sg               = module.securitygroup.ansible_sg
   key-name                 = module.keypair.public-key-id
   name                     = "${local.name}-ansible"
-  nexus-ip                 = module.nexus.nexus_ip
+  nexus-ip                 = module.nexus.nexus_pub_ip
   private_key              = module.keypair.private-key-id
   staging-MyPlaybook       = "${path.root}./module/ansible/stage-playbook.yaml"
   prod-MyPlaybook          = "${path.root}./module/ansible/prod-playbook.yaml"
@@ -97,7 +97,7 @@ module "monitoring" {
   subnet_id    = module.vpc.publicsub1
   keypair      = module.keypair.public-key-id
   name         = "${local.name}-promgraf"
-  nexus-ip     = module.nexus.nexus_ip
+  nexus-ip     = module.nexus.nexus_pub_ip
   jenkins_ip   = module.jenkins.jenkins_ip
   ansible_ip   = module.ansible.ansible_ip
   Sonarqube-ip = module.sonarqube.sonarqube_ip
@@ -112,7 +112,7 @@ module "prod-asg" {
   ami-prod        = "ami-035cecbff25e0d91e"
   keyname         = module.keypair.public-key-id
   asg-sg          = module.securitygroup.asg_sg
-  nexus-ip-prd    = module.nexus.nexus_ip
+  nexus-ip-prd    = module.nexus.nexus_pub_ip
   vpc-zone-id-prd = [module.vpc.privatesub1, module.vpc.privatesub2, module.vpc.privatesub3]
   tg-arn          = module.prod-lb.prod-tg-arn
   asg-prod-name   = "${local.name}-prod-asg"
@@ -123,7 +123,7 @@ module "stage-asg" {
   ami-stage         = "ami-035cecbff25e0d91e"
   asg-sg            = module.securitygroup.asg_sg
   keyname           = module.keypair.public-key-id
-  nexus-ip-stage    = module.nexus.nexus_ip
+  nexus-ip-stage    = module.nexus.nexus_pub_ip
   vpc-zone-id-stage = [module.vpc.privatesub1, module.vpc.privatesub2, module.vpc.privatesub3]
   tg-arn            = module.stage-lb.stage-tg-arn
   asg-stage-name    = "${local.name}-stage-asg"
