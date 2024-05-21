@@ -14,7 +14,7 @@ module "vpc" {
   source         = "../module/vpc"
   private-subnet = ["10.0.4.0/24", "10.0.5.0/24", "10.0.6.0/24"]
   public-subnet  = ["10.0.1.0/24", "10.0.2.0/24", "10.0.3.0/24"]
-  azs            = ["eu-west-2a", "eu-west-2b", "eu-west-2c"]
+  azs            = ["eu-west-3a", "eu-west-3b", "eu-west-3c"]
 }
 
 module "securitygroup" {
