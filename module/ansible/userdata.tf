@@ -30,12 +30,12 @@ sudo yum install python python-devel python-pip ansible -y
 sudo useradd --no-create-home node_exporter
 
 # download node_exporter tar file
-wget https://github.com/prometheus/node_exporter/releases/download/v1.6.1/node_exporter-1.6.1.linux-amd64.tar.gz
-tar xzf node_exporter-1.6.1.linux-amd64.tar.gz
-cd node_exporter-1.6.1.linux-amd64
+wget https://github.com/prometheus/node_exporter/releases/download/v1.8.0/node_exporter-1.8.0.linux-amd64.tar.gz
+tar xzf node_exporter-1.8.0.linux-amd64.tar.gz
+cd node_exporter-1.8.0.linux-amd64
 sudo cp node_exporter /usr/local/bin
 cd ..
-rm -rf node_exporter-1.6.1.linux-amd64.tar.gz node_exporter-1.6.1.linux-amd64
+rm -rf node_exporter-1.8.0.linux-amd64.tar.gz node_exporter-1.8.0.linux-amd64
 sudo chown node_exporter:node_exporter /usr/local/bin/node_exporter
 
 # create node_exporter service file to start node_exporter

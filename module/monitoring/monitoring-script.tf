@@ -35,9 +35,9 @@ sudo mkdir /etc/prometheus
 sudo mkdir /var/lib/prometheus
 
 # download the prometheus tar file for the internet and configure it
-wget https://github.com/prometheus/prometheus/releases/download/v2.43.0/prometheus-2.43.0.linux-amd64.tar.gz
+wget https://github.com/prometheus/prometheus/releases/download/v2.45.5/prometheus-2.45.5.linux-amd64.tar.gz
 tar vxf prometheus*.tar.gz
-cd prometheus-2.43.0.linux-amd64
+cd prometheus-2.45.5.linux-amd64
 sudo mv prometheus /usr/local/bin
 sudo mv promtool /usr/local/bin
 sudo chown prometheus:prometheus /usr/local/bin/prometheus
@@ -52,7 +52,7 @@ sudo chown -R prometheus:prometheus /etc/prometheus/console_libraries
 sudo chown -R prometheus:prometheus /var/lib/prometheus
 
 cd
-rm -rf prometheus-2.43.0.linux-amd64.tar.gz prometheus-2.43.0.linux-amd64
+rm -rf prometheus-2.45.5.linux-amd64.tar.gz prometheus-2.45.5.linux-amd64
 
 sudo chown prometheus:prometheus /etc/prometheus
 sudo chown prometheus:prometheus /usr/local/bin/prometheus
@@ -153,19 +153,18 @@ sudo chmod 664 /usr/lib/systemd/system/alertmanager.service
 sudo systemctl daemon-reload 
 sudo systemctl start alertmanager
 sudo systemctl enable alertmanager.service
-
 EOT
 
 # create node exporter user
 sudo useradd --no-create-home node_exporter
 
 # download node_exporter tar file
-wget https://github.com/prometheus/node_exporter/releases/download/v1.6.1/node_exporter-1.6.1.linux-amd64.tar.gz
-tar xzf node_exporter-1.6.1.linux-amd64.tar.gz
-cd node_exporter-1.6.1.linux-amd64
+wget https://github.com/prometheus/node_exporter/releases/download/v1.8.0/node_exporter-1.8.0.linux-amd64.tar.gz
+tar xzf node_exporter-1.8.0.linux-amd64.tar.gz
+cd node_exporter-1.8.0.linux-amd64
 sudo cp node_exporter /usr/local/bin
 cd ..
-rm -rf node_exporter-1.6.1.linux-amd64.tar.gz node_exporter-1.6.1.linux-amd64
+rm -rf node_exporter-1.8.0.linux-amd64.tar.gz node_exporter-1.8.0.linux-amd64
 sudo chown node_exporter:node_exporter /usr/local/bin/node_exporter
 
 # create node_exporter service file to start node_exporter
@@ -187,10 +186,6 @@ EOT
 sudo systemctl daemon-reload
 sudo systemctl enable node_exporter
 sudo systemctl start node_exporter
-
-
-curl http://localhost:9100/metrics
-
 
 # install grafana
 sudo apt update
