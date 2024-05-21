@@ -82,6 +82,17 @@ EOT
 
 # create prometheus config file
 sudo cat <<EOT> /etc/prometheus/prometheus.yml
+
+# Alertmanager  Configuration
+alerting:
+   alertmanagers:
+   - static configs:
+      - targets:
+        - 'localhost:9093'
+
+rule_files:
+  - alert.rules.yml
+
 global:
   scrape_interval: 15s
   external_labels:
@@ -153,6 +164,68 @@ sudo chmod 664 /usr/lib/systemd/system/alertmanager.service
 sudo systemctl daemon-reload 
 sudo systemctl start alertmanager
 sudo systemctl enable alertmanager.service
+
+sudo tee /etc/alertmanager/alertmanager.yml > /dev/null <<EOT
+global:
+  resolve_timeout: 1m
+
+route:
+ receiver: 'email-notifications'
+
+receivers:
+- name: 'email-notifications'
+  email_configs:
+  - to: tunde.afod@gmail.com
+    from: tunde.afod@gmail.com
+    smarthost: smtp.gmail.com:587
+    auth_username: tunde.afod@gmail.com
+    auth_identity: tunde.afod@gmail.com
+    auth_password: Babatunde17
+    send_resolved: true
+EOT
+
+sudo tee /etc/prometheus/alert_rules.yml > /dev/null <<EOT
+groups:
+- name: alert.rules
+  rules:
+  - alert: InstanceDown
+    expr: up == 0
+    for: 1m
+    labels:
+      severity: "critical"
+    annotations:
+      summary: "Endpoint {{ $labels.instance }} down"
+      description: "{{ $labels.instance }} of job {{ $labels.job }} has been down for more than 1 minutes."
+  
+  - alert: HostOutOfMemory
+    expr: node_memory_MemAvailable / node_memory_MemTotal * 100 < 25
+    for: 5m
+    labels:
+      severity: warning
+    annotations:
+      summary: "Host out of memory (instance {{ $labels.instance }})"
+      description: "Node memory is filling up (< 25% left)\n  VALUE = {{ $value }}\n  LABELS: {{ $labels }}"
+
+
+  - alert: HostOutOfDiskSpace
+    expr: (node_filesystem_avail{mountpoint="/"}  * 100) / node_filesystem_size{mountpoint="/"} < 50
+    for: 1s
+    labels:
+      severity: warning
+    annotations:
+      summary: "Host out of disk space (instance {{ $labels.instance }})"
+      description: "Disk is almost full (< 50% left)\n  VALUE = {{ $value }}\n  LABELS: {{ $labels }}"
+
+
+  - alert: HostHighCpuLoad
+    expr: (sum by (instance) (irate(node_cpu{job="node_exporter_metrics",mode="idle"}[5m]))) > 80
+    for: 5m
+    labels:
+      severity: warning
+    annotations:
+      summary: "Host high CPU load (instance {{ $labels.instance }})"
+      description: "CPU load is > 80%\n  VALUE = {{ $value }}\n  LABELS: {{ $labels }}"
+EOT
 
 
 # create node exporter user

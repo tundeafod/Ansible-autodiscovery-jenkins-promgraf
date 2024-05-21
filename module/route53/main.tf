@@ -40,7 +40,7 @@ resource "aws_route53_record" "graf_record" {
 
 resource "aws_route53_record" "alertmanager_record" {
   zone_id = data.aws_route53_zone.route53_zone.zone_id
-  name    = var.graf_domain_name
+  name    = var.alertmanager_domain_name
   type    = "A"
   alias {
     name                   = var.alertmanager_lb_dns_name
