@@ -36,27 +36,18 @@ sudo chown prometheus:prometheus /usr/local/bin/promtool
 sudo tee /etc/prometheus/prometheus.yml > /dev/null <<EOT
 global:
   scrape_interval: 15s
+  external_labels:
+    monitor: 'prometheus'
 
 rule_files:
   - 'prometheus.rules.yml'
 
 scrape_configs:
 
-  - job_name: 'prometheus'
-    scrape_interval: 5s
-    static_configs:
-      - targets: ['localhost:9090']
-
-  - job_name: 'node_exporter'
-    scrape_interval: 5s
-    static_configs:
-      - targets: ['localhost:9100']
-
   - job_name: 'Infra node exporter'
-    scrape_interval: 5s
     static_configs:
       - targets:
-        - ['${var.nexus-ip}:9100', '${var.jenkins_ip}:9100', '${var.Sonarqube-ip}:9100', '${var.ansible_ip}:9100']
+        - ['localhost:9100', '${var.nexus-ip}:9100', '${var.jenkins_ip}:9100', '${var.Sonarqube-ip}:9100', '${var.ansible_ip}:9100']
 
   - job_name: 'ec2-service-discovery'
     ec2_sd_configs:
