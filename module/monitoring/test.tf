@@ -2,6 +2,32 @@
 #   monitoring-script = <<-EOF
 # #!/bin/bash
 
+# sudo apt update
+
+# # # Update instance and install tools (wget, unzip, aws cli) 
+# # sudo apt install wget unzip -y
+# # wget "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -O "awscliv2.zip"
+# # unzip awscliv2.zip
+# # sudo ./aws/install
+
+# #configuring the aws cli on your ubuntu user
+# sudo su -c "aws configure set aws_access_key_id ${aws_iam_access_key.prom_user_access_key.id}" ubuntu
+# sudo su -c "aws configure set aws_secret_access_key ${aws_iam_access_key.prom_user_access_key.secret}" ubuntu
+# sudo su -c "aws configure set default.region eu-west-2" ubuntu
+# sudo su -c "aws configure set default.output text" ubuntu
+
+# #make access key for environment variable
+# export AWS_ACCESS_KEY_ID=${aws_iam_access_key.prom_user_access_key.id}
+# export AWS_SECRET_ACCESS_KEY=${aws_iam_access_key.prom_user_access_key.secret}
+# export AWS_DEFAULT_REGION=eu-west-2
+# export AWS_DEFAULT_OUTPUT=text
+
+# # Disable SSH strict host checking
+# sudo bash -c 'echo "StrictHostKeyChecking No" >> /etc/ssh/ssh_config'
+
+# # Add AWS CLI to system PATH
+# sudo ln -svf /usr/local/bin/aws /usr/bin/aws
+
 # # create a group and user 
 # sudo groupadd --system prometheus
 # sudo useradd -s /sbin/nologin --system -g prometheus prometheus
@@ -9,9 +35,9 @@
 # sudo mkdir /var/lib/prometheus
 
 # # download the prometheus tar file for the internet and configure it
-# wget https://github.com/prometheus/prometheus/releases/download/v2.43.0/prometheus-2.43.0.linux-amd64.tar.gz
+# wget https://github.com/prometheus/prometheus/releases/download/v2.45.5/prometheus-2.45.5.linux-amd64.tar.gz
 # tar vxf prometheus*.tar.gz
-# cd prometheus-2.43.0.linux-amd64
+# cd prometheus-2.45.5.linux-amd64
 # sudo mv prometheus /usr/local/bin
 # sudo mv promtool /usr/local/bin
 # sudo chown prometheus:prometheus /usr/local/bin/prometheus
@@ -26,7 +52,7 @@
 # sudo chown -R prometheus:prometheus /var/lib/prometheus
 
 # cd
-# rm -rf prometheus-2.43.0.linux-amd64.tar.gz prometheus-2.43.0.linux-amd64
+# rm -rf prometheus-2.45.5.linux-amd64.tar.gz prometheus-2.45.5.linux-amd64
 
 # sudo chown prometheus:prometheus /etc/prometheus
 # sudo chown prometheus:prometheus /usr/local/bin/prometheus
@@ -65,22 +91,80 @@
 #   - job_name: 'Infra node exporter'
 #     static_configs:
 #       - targets: ['localhost:9100', '${var.nexus-ip}:9100', '${var.jenkins_ip}:9100', '${var.Sonarqube-ip}:9100', '${var.ansible_ip}:9100']
+
+#   - job_name: 'ec2-service-discovery'
+#     ec2_sd_configs:
+#       - region: eu-west-2
+#         access_key: '${aws_iam_access_key.prom_user_access_key.id}'
+#         secret_key: '${aws_iam_access_key.prom_user_access_key.secret}'
 # EOT
 
 # sudo systemctl daemon-reload
 # sudo systemctl enable prometheus
 # sudo systemctl start prometheus
 
+# # create Alert Manager
+# # Download Prometheus AlertManager
+# wget https://github.com/prometheus/alertmanager/releases/download/v0.27.0/alertmanager-0.27.0.linux-amd64.tar.gz
+
+# #Create User
+# sudo groupadd -f alertmanager
+# sudo useradd -g alertmanager --no-create-home --shell /bin/false alertmanager
+# sudo mkdir -p /etc/alertmanager/templates
+# sudo mkdir /var/lib/alertmanager
+# sudo chown alertmanager:alertmanager /etc/alertmanager
+# sudo chown alertmanager:alertmanager /var/lib/alertmanager
+
+# # Unpack Prometheus AlertManager Binary
+# tar -xvf alertmanager-0.27.0.linux-amd64.tar.gz
+# mv alertmanager-0.27.0.linux-amd64 alertmanager-files
+
+# # Install Prometheus AlertManager
+# sudo cp alertmanager-files/alertmanager /usr/bin/
+# sudo cp alertmanager-files/amtool /usr/bin/
+# sudo chown alertmanager:alertmanager /usr/bin/alertmanager
+# sudo chown alertmanager:alertmanager /usr/bin/amtool
+
+# #Install Prometheus AlertManager Configuration File
+# sudo cp alertmanager-files/alertmanager.yml /etc/alertmanager/alertmanager.yml
+# sudo chown alertmanager:alertmanager /etc/alertmanager/alertmanager.yml
+
+# # create alertmanger service file to start Alertmanger
+# sudo cat <<EOT>> /usr/lib/systemd/system/alertmanager.service
+# [Unit]
+# Description=AlertManager
+# Wants=network-online.target
+# After=network-online.target
+
+# [Service]
+# User=alertmanager
+# Group=alertmanager
+# Type=simple
+# ExecStart=/usr/bin/alertmanager \
+#     --config.file /etc/alertmanager/alertmanager.yml \
+#     --storage.path /var/lib/alertmanager/
+
+# [Install]
+# WantedBy=multi-user.target
+# EOT
+
+# sudo chmod 664 /usr/lib/systemd/system/alertmanager.service
+
+# sudo systemctl daemon-reload 
+# sudo systemctl start alertmanager
+# sudo systemctl enable alertmanager.service
+# EOT
+
 # # create node exporter user
 # sudo useradd --no-create-home node_exporter
 
 # # download node_exporter tar file
-# wget https://github.com/prometheus/node_exporter/releases/download/v1.6.1/node_exporter-1.6.1.linux-amd64.tar.gz
-# tar xzf node_exporter-1.6.1.linux-amd64.tar.gz
-# cd node_exporter-1.6.1.linux-amd64
+# wget https://github.com/prometheus/node_exporter/releases/download/v1.8.0/node_exporter-1.8.0.linux-amd64.tar.gz
+# tar xzf node_exporter-1.8.0.linux-amd64.tar.gz
+# cd node_exporter-1.8.0.linux-amd64
 # sudo cp node_exporter /usr/local/bin
 # cd ..
-# rm -rf node_exporter-1.6.1.linux-amd64.tar.gz node_exporter-1.6.1.linux-amd64
+# rm -rf node_exporter-1.8.0.linux-amd64.tar.gz node_exporter-1.8.0.linux-amd64
 # sudo chown node_exporter:node_exporter /usr/local/bin/node_exporter
 
 # # create node_exporter service file to start node_exporter
@@ -103,9 +187,6 @@
 # sudo systemctl enable node_exporter
 # sudo systemctl start node_exporter
 
-
-# curl http://localhost:9100/metrics
-
 # # install grafana
 # sudo apt update
 # sudo apt install -y gnupg2 curl software-properties-common
@@ -115,34 +196,8 @@
 # sudo apt -y install grafana
 # sudo systemctl enable --now grafana-server
 
-# #Update instance and install tools (wget, unzip, aws cli) 
-# sudo apt update -y
-# sudo apt install unzip -y
-# curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip"
-# unzip awscliv2.zip
-# sudo ./aws/install
-
-# sudo su -c "aws configure set aws_access_key_id ${aws_iam_access_key.prom_user_access_key.id}" ubuntu
-# sudo su -c "aws configure set aws_secret_access_key ${aws_iam_access_key.prom_user_access_key.secret}" ubuntu
-# sudo su -c "aws configure set default.region eu-west-2" ubuntu
-# sudo su -c "aws configure set default.output text" ubuntu
-
-# # Set Access_keys as ENV Variables
-# export AWS_ACCESS_KEY_ID=${aws_iam_access_key.prom_user_access_key.id}
-# export AWS_SECRET_ACCESS_KEY=${aws_iam_access_key.prom_user_access_key.secret}
-
-# # copying files from local machines into Prometheus server
-# sudo echo "${file(var.prom_server_discovery-script)}" >> /etc/prometheus/prom_server_update.sh 
-# sudo echo "${var.private_key}" >> /home/ubuntu/.ssh/id_rsa
-
-# # Give the right permissions to the files copied from the local machine into the Prometheus server
-# sudo chown -R ubuntu:ubuntu /etc/prometheus
-# sudo chmod 400 /etc/prometheus/key.pem
-# sudo chmod 755 /etc/prometheus/prom_server_update.sh
-
-# #creating crontab to execute auto discovery script
-# echo "* * * * * ubuntu sh /etc/prometheus/prom_server_update.sh.sh" >> /etc/crontab
-
 # sudo hostnamectl set-hostname monitoring
 # EOF
 # }
+
+

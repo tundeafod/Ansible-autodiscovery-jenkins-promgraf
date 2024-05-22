@@ -23,4 +23,3 @@ output "rds-endpoint" {
 output "nexus_pub_ip" {
   value = module.nexus.nexus_pub_ip
 }
-

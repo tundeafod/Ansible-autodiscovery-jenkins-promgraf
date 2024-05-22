@@ -5,4 +5,3 @@ variable "keyname" {}
 variable "name" {}
 variable "elb-subnets" {}
 variable "cert-arn" {}
-variable "private_key" {}
