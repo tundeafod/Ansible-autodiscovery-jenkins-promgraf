@@ -45,10 +45,9 @@ module "bastion" {
 module "nexus" {
   source      = "../module/nexus"
   ami_redhat  = "ami-035cecbff25e0d91e"
-  subnet_id   = module.vpc.privatesub2
+  subnet_id   = module.vpc.publicsub1
   nexus-sg    = module.securitygroup.nexus_sg
   keyname     = module.keypair.public-key-id
-  private_key = module.keypair.private-key-id
   name        = "${local.name}-nexus"
   elb-subnets = [module.vpc.publicsub1, module.vpc.publicsub2, module.vpc.publicsub3]
   cert-arn    = module.acm.acm_certificate

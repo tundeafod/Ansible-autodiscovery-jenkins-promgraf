@@ -4,30 +4,6 @@ locals {
 
 sudo apt update
 
-# # Update instance and install tools (wget, unzip, aws cli) 
-# sudo apt install wget unzip -y
-# wget "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -O "awscliv2.zip"
-# unzip awscliv2.zip
-# sudo ./aws/install
-
-#configuring the aws cli on your ubuntu user
-sudo su -c "aws configure set aws_access_key_id ${aws_iam_access_key.prom_user_access_key.id}" ubuntu
-sudo su -c "aws configure set aws_secret_access_key ${aws_iam_access_key.prom_user_access_key.secret}" ubuntu
-sudo su -c "aws configure set default.region eu-west-2" ubuntu
-sudo su -c "aws configure set default.output text" ubuntu
-
-#make access key for environment variable
-export AWS_ACCESS_KEY_ID=${aws_iam_access_key.prom_user_access_key.id}
-export AWS_SECRET_ACCESS_KEY=${aws_iam_access_key.prom_user_access_key.secret}
-export AWS_DEFAULT_REGION=eu-west-2
-export AWS_DEFAULT_OUTPUT=text
-
-# Disable SSH strict host checking
-sudo bash -c 'echo "StrictHostKeyChecking No" >> /etc/ssh/ssh_config'
-
-# Add AWS CLI to system PATH
-sudo ln -svf /usr/local/bin/aws /usr/bin/aws
-
 # create a group and user 
 sudo groupadd --system prometheus
 sudo useradd -s /sbin/nologin --system -g prometheus prometheus
@@ -82,6 +58,16 @@ EOT
 
 # create prometheus config file
 sudo cat <<EOT> /etc/prometheus/prometheus.yml
+# Alertmanager  Configuration
+alerting:
+   alertmanagers:
+   - static configs:
+      - targets:
+        - 'localhost:9093'
+
+rule_files:
+  - alert.rules.yml
+
 global:
   scrape_interval: 15s
   external_labels:
@@ -151,9 +137,71 @@ EOT
 sudo chmod 664 /usr/lib/systemd/system/alertmanager.service
 
 sudo systemctl daemon-reload 
-sudo systemctl start alertmanager
 sudo systemctl enable alertmanager.service
+sudo systemctl start alertmanager
+
+sudo tee /etc/alertmanager/alertmanager.yml > /dev/null <<EOT
+global:
+  resolve_timeout: 1m
+
+route:
+ receiver: 'email-notifications'
+
+receivers:
+- name: 'email-notifications'
+  email_configs:
+  - to: tunde.afod@gmail.com
+    from: tunde.afod@gmail.com
+    smarthost: smtp.gmail.com:587
+    auth_username: tunde.afod@gmail.com
+    auth_identity: tunde.afod@gmail.com
+    auth_password: Babatunde17
+    send_resolved: true
 EOT
+
+sudo tee /etc/prometheus/alert.rules.yml > /dev/null <<EOT
+groups:
+- name: alert.rules
+  rules:
+  - alert: InstanceDown
+    expr: up == 0
+    for: 1m
+    labels:
+      severity: "critical"
+    annotations:
+      summary: "Endpoint {{ $labels.instance }} down"
+      description: "{{ $labels.instance }} of job {{ $labels.job }} has been down for more than 1 minutes."
+
+  - alert: HostOutOfMemory
+    expr: node_memory_MemAvailable / node_memory_MemTotal * 100 < 25
+    for: 5m
+    labels:
+      severity: warning
+    annotations:
+      summary: "Host out of memory (instance {{ $labels.instance }})"
+      description: "Node memory is filling up (< 25% left)\n  VALUE = {{ $value }}\n  LABELS: {{ $labels }}"
+
+
+  - alert: HostOutOfDiskSpace
+    expr: (node_filesystem_avail{mountpoint="/"}  * 100) / node_filesystem_size{mountpoint="/"} < 50
+    for: 1s
+    labels:
+      severity: warning
+    annotations:
+      summary: "Host out of disk space (instance {{ $labels.instance }})"
+      description: "Disk is almost full (< 50% left)\n  VALUE = {{ $value }}\n  LABELS: {{ $labels }}"
+
+
+  - alert: HostHighCpuLoad
+    expr: (sum by (instance) (irate(node_cpu{job="node_exporter_metrics",mode="idle"}[5m]))) > 80
+    for: 5m
+    labels:
+      severity: warning
+    annotations:
+      summary: "Host high CPU load (instance {{ $labels.instance }})"
+      description: "CPU load is > 80%\n  VALUE = {{ $value }}\n  LABELS: {{ $labels }}"
+EOT
+
 
 # create node exporter user
 sudo useradd --no-create-home node_exporter
@@ -186,6 +234,7 @@ EOT
 sudo systemctl daemon-reload
 sudo systemctl enable node_exporter
 sudo systemctl start node_exporter
+
 
 # install grafana
 sudo apt update
