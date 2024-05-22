@@ -2,12 +2,8 @@ locals {
   monitoring-script = <<-EOF
 #!/bin/bash
 
-# Define variables
-PROMVERSION=2.45.5
-NODEVERSION=1.8.0
-ALERTMANAGERVERSION=0.27.0
-
 sudo apt update -y
+
 # Make prometheus user
 sudo adduser --no-create-home --disabled-login --shell /bin/false --gecos "Prometheus Monitoring User" prometheus
 
@@ -22,14 +18,13 @@ sudo chown -R prometheus:prometheus /etc/prometheus
 sudo chown prometheus:prometheus /var/lib/prometheus
 
 # Download prometheus and copy utilities to where they should be in the filesystem
-#VERSION=2.45.5
-wget //github.com/prometheus/prometheus/releases/download/v${PROMVERSION}/prometheus-${PROMVERSION}.linux-amd64.tar.gz
-tar xvzf prometheus-${PROMVERSION}.linux-amd64.tar.gz
+wget https://github.com/prometheus/prometheus/releases/download/v2.45.5/prometheus-2.45.5.linux-amd64.tar.gz
+tar xvzf prometheus*.tar.gz
 
-sudo cp prometheus-${PROMVERSION}.linux-amd64/prometheus /usr/local/bin/
-sudo cp prometheus-${PROMVERSION}.linux-amd64/promtool /usr/local/bin/
-sudo cp -r prometheus-${PROMVERSION}.linux-amd64/consoles /etc/prometheus
-sudo cp -r prometheus-${PROMVERSION}.linux-amd64/console_libraries /etc/prometheus
+sudo cp prometheus-2.45.5.linux-amd64/prometheus /usr/local/bin/
+sudo cp prometheus-2.45.5.linux-amd64/promtool /usr/local/bin/
+sudo cp -r prometheus-2.45.5.linux-amd64/consoles /etc/prometheus
+sudo cp -r prometheus-2.45.5.linux-amd64/console_libraries /etc/prometheus
 
 # Assign the ownership of the tools above to prometheus user
 sudo chown -R prometheus:prometheus /etc/prometheus/consoles
@@ -142,18 +137,18 @@ sudo systemctl enable prometheus
 sudo systemctl start prometheus
 
 # Installation cleanup
-rm prometheus-${PROMVERSION}.linux-amd64.tar.gz
-rm -rf prometheus-${PROMVERSION}.linux-amd64
+rm prometheus-2.45.5.linux-amd64.tar.gz
+rm -rf prometheus-2.45.5.linux-amd64
 
 
 # Make node_exporter user
 sudo adduser --no-create-home --disabled-login --shell /bin/false --gecos "Node Exporter User" node_exporter
 
 # Download node_exporter and copy utilities to where they should be in the filesystem
-wget https://github.com/prometheus/node_exporter/releases/download/v${NODEVERSION}/node_exporter-${NODEVERSION}.linux-amd64.tar.gz
-tar xvzf node_exporter-${NODEVERSION}.linux-amd64.tar.gz
+wget https://github.com/prometheus/node_exporter/releases/download/v1.8.0/node_exporter-1.8.0.linux-amd64.tar.gz
+tar xvzf node_exporter-1.8.0.linux-amd64.tar.gz
 
-sudo cp node_exporter-${NODEVERSION}.linux-amd64/node_exporter /usr/local/bin/
+sudo cp node_exporter-1.8.0.linux-amd64/node_exporter /usr/local/bin/
 sudo chown node_exporter:node_exporter /usr/local/bin/node_exporter
 
 # systemd
@@ -178,8 +173,8 @@ sudo systemctl enable node_exporter
 sudo systemctl start node_exporter
 
 # Installation cleanup
-rm node_exporter-${NODEVERSION}.linux-amd64.tar.gz
-rm -rf node_exporter-${NODEVERSION}.linux-amd64
+rm node_exporter-1.8.0.linux-amd64.tar.gz
+rm -rf node_exporter-1.8.0.linux-amd64
 
 
 # install grafana
@@ -208,17 +203,13 @@ sudo chown -R alertmanager:alertmanager /var/lib/alertmanager
 
 # Download alertmanager and copy utilities to where they should be in the filesystem
 #VERSION=0.27.0
-wget https://github.com/prometheus/alertmanager/releases/download/v${ALERTMANAGERVERSION}/alertmanager-${ALERTMANAGERVERSION}.linux-amd64.tar.gz
-tar xvzf alertmanager-${ALERTMANAGERVERSION}.linux-amd64.tar.gz
+wget https://github.com/prometheus/alertmanager/releases/download/v0.27.0/alertmanager-0.27.0.linux-amd64.tar.gz
+tar xvzf alertmanager-0.27.0.linux-amd64.tar.gz
 
-sudo cp alertmanager-${ALERTMANAGERVERSION}.linux-amd64/alertmanager /usr/local/bin/
-sudo cp alertmanager-${ALERTMANAGERVERSION}.linux-amd64/amtool /usr/local/bin/
+sudo cp alertmanager-0.27.0.linux-amd64/alertmanager /usr/local/bin/
+sudo cp alertmanager-0.27.0.linux-amd64/amtool /usr/local/bin/
 sudo chown alertmanager:alertmanager /usr/local/bin/alertmanager
 sudo chown alertmanager:alertmanager /usr/local/bin/amtool
-
-# Populate configuration files
-cat ./alertmanager/alertmanager.yml | sudo tee /etc/alertmanager/alertmanager.yml
-cat ./alertmanager/alertmanager.service | sudo tee /etc/systemd/system/alertmanager.service
 
 sudo tee /etc/alertmanager/alertmanager.yml > /dev/null <<EOT
 global:
@@ -267,8 +258,8 @@ sudo systemctl enable alertmanager
 sudo systemctl start alertmanager
 
 # Installation cleanup
-rm alertmanager-${ALERTMANAGERVERSION}.linux-amd64.tar.gz
-rm -rf alertmanager-${ALERTMANAGERVERSION}.linux-amd64
+rm alertmanager-0.27.0.linux-amd64.tar.gz
+rm -rf alertmanager-0.27.0.linux-amd64
 
 sudo hostnamectl set-hostname monitoring
 EOF
