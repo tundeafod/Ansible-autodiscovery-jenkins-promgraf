@@ -49,7 +49,7 @@ alerting:
 
 # Load rules once and periodically evaluate them according to the global 'evaluation_interval'.
 rule_files:
-   - "prometheus.rules.yml"
+   - "alert.rules.yml"
   # - "second_rules.yml"
 
 # A scrape configuration containing exactly one endpoint to scrape:
@@ -59,22 +59,18 @@ scrape_configs:
     static_configs:
       - targets: ["localhost:9090"]
 
-scrape_configs:
   - job_name: "Infra Jenkins exporter"
     static_configs:
       - targets: ["${var.jenkins_ip}:9100"] 
 
-scrape_configs:
   - job_name: "Infra Nexus exporter"
     static_configs:
       - targets: ["${var.nexus-ip}:9100"]
 
-scrape_configs:
   - job_name: "Infra Sonarqube exporter"
     static_configs:
       - targets: ["${var.Sonarqube-ip}:9100"]
 
-scrape_configs:
   - job_name: "Infra Ansible exporter"
     static_configs:
       - targets: ["${var.ansible_ip}:9100"]
@@ -97,7 +93,7 @@ groups:
           severity: "critical"
         annotations:
           summary: "Endpoint {{ $labels.instance }} down"
-          description: "{{ $labels.instance }} of job {{ $labels.job }} has been down for more than 1 minutes."
+          description: "{{ $labels.instance }} of job {{ $labels.job }} has been down for more than 1 minute."
 
       - alert: HostOutOfMemory
         expr: node_memory_MemAvailable / node_memory_MemTotal * 100 < 25
@@ -107,7 +103,7 @@ groups:
         annotations:
           summary: "Host out of memory (instance {{ $labels.instance }})"
           description: "Node memory is filling up (< 25% left)\n  VALUE = {{ $value }}\n  LABELS: {{ $labels }}"
-      
+
       - alert: HostOutOfDiskSpace
         expr: (node_filesystem_avail{mountpoint="/"} * 100) / node_filesystem_size{mountpoint="/"} < 50
         for: 1s
