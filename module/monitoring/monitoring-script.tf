@@ -33,36 +33,60 @@ sudo chown prometheus:prometheus /usr/local/bin/prometheus
 sudo chown prometheus:prometheus /usr/local/bin/promtool
 
 # Populate configuration files 
-sudo tee /etc/prometheus/prometheus.yml > /dev/null <<EOT
+sudo cat <<EOT> /etc/prometheus/prometheus.yml
+# my global config
 global:
-  scrape_interval: 15s
-  external_labels:
-    monitor: 'prometheus'
+  scrape_interval: 15s # Set the scrape interval to every 15 seconds. Default is every 1 minute.
+  evaluation_interval: 15s # Evaluate rules every 15 seconds. The default is every 1 minute.
+  # scrape_timeout is set to the global default (10s).
 
+# Alertmanager configuration
+alerting:
+  alertmanagers:
+    - static_configs:
+        - targets:
+           - localhost:9093
+
+# Load rules once and periodically evaluate them according to the global 'evaluation_interval'.
 rule_files:
-  - 'prometheus.rules.yml'
+   - "prometheus.rules.yml"
+  # - "second_rules.yml"
+
+# A scrape configuration containing exactly one endpoint to scrape:
+# Here it's Prometheus itself.
+scrape_configs:
+  - job_name: "prometheus"
+    static_configs:
+      - targets: ["localhost:9090"]
 
 scrape_configs:
-
-  - job_name: 'Infra node exporter'
+  - job_name: "Infra Jenkins exporter"
     static_configs:
-      - targets:
-        - ['localhost:9100', '${var.nexus-ip}:9100', '${var.jenkins_ip}:9100', '${var.Sonarqube-ip}:9100', '${var.ansible_ip}:9100']
+      - targets: ["${var.jenkins_ip}:9100"] 
 
-  - job_name: 'ec2-service-discovery'
+scrape_configs:
+  - job_name: "Infra Nexus exporter"
+    static_configs:
+      - targets: ["${var.nexus-ip}:9100"]
+
+scrape_configs:
+  - job_name: "Infra Sonarqube exporter"
+    static_configs:
+      - targets: ["${var.Sonarqube-ip}:9100"]
+
+scrape_configs:
+  - job_name: "Infra Ansible exporter"
+    static_configs:
+      - targets: ["${var.ansible_ip}:9100"]
+
+  - job_name: "ec2-service-discovery"
     ec2_sd_configs:
       - region: eu-west-2
         access_key: '${aws_iam_access_key.prom_user_access_key.id}'
         secret_key: '${aws_iam_access_key.prom_user_access_key.secret}'
-
-alerting:
-  alertmanagers:
-  - static_configs:
-    - targets:
-      - localhost:9093
 EOT
 
-sudo tee /etc/prometheus/prometheus.rules.yml > /dev/null <<EOT
+sudo cat <<EOT> /etc/prometheus/prometheus.rules.yml
 groups:
   - name: ServerDown
     rules:
@@ -103,7 +127,7 @@ groups:
           description: "CPU load is > 80%\n  VALUE = {{ $value }}\n  LABELS: {{ $labels }}"
 EOT
 
-sudo tee /etc/systemd/system/prometheus.service > /dev/null <<EOT
+sudo cat <<EOT> /etc/systemd/system/prometheus.service
 [Unit]
 Description=Prometheus
 Wants=network-online.target
@@ -143,7 +167,7 @@ sudo cp node_exporter-1.8.0.linux-amd64/node_exporter /usr/local/bin/
 sudo chown node_exporter:node_exporter /usr/local/bin/node_exporter
 
 # systemd
-sudo tee /etc/systemd/system/node_exporter.service > /dev/null <<EOT
+sudo cat <<EOT> /etc/systemd/system/node_exporter.service
 [Unit]
 Description=Node Exporter
 Wants=network-online.target
@@ -202,7 +226,7 @@ sudo cp alertmanager-0.27.0.linux-amd64/amtool /usr/local/bin/
 sudo chown alertmanager:alertmanager /usr/local/bin/alertmanager
 sudo chown alertmanager:alertmanager /usr/local/bin/amtool
 
-sudo tee /etc/alertmanager/alertmanager.yml > /dev/null <<EOT
+sudo cat <<EOT> /etc/alertmanager/alertmanager.yml
 global:
   resolve_timeout: 1m
   smtp_smarthost: 'smtp.gmail.com:587'
@@ -224,7 +248,7 @@ receivers:
   - to: 'tunde.afod@gmail.com'
 EOT
 
-sudo tee /etc/systemd/system/alertmanager.service > /dev/null <<EOT
+sudo cat <<EOT> /etc/systemd/system/alertmanager.service
 [Unit]
 Description=Prometheus Alert Manager service
 Wants=network-online.target
