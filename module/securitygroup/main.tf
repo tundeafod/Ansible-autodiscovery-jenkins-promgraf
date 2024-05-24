@@ -261,8 +261,7 @@ resource "aws_security_group" "rds-sg" {
     from_port       = 3306
     to_port         = 3306
     protocol        = "tcp"
-    security_groups = [aws_security_group.bastion_sg.id]
-    #aws_security_group.asg-sg.id
+    security_groups = [aws_security_group.bastion_sg.id, aws_security_group.asg-sg.id]
   }
   egress {
     from_port   = 0

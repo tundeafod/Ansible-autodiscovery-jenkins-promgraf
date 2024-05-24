@@ -6,7 +6,7 @@ set -x
 AWS_CLI_PATH='/usr/local/bin/aws'
 INVENTORY_FILE='/etc/ansible/stage-hosts'
 IPS_FILE='/etc/ansible/stage-ips.list'
-ASG_NAME='pet-clinic-stage-asg'
+ASG_NAME='TSPADP-stage-asg'
 SSH_KEY_PATH="~/.ssh/id_rsa"
 WAIT_TIME=20
 
