@@ -49,7 +49,7 @@ alerting:
 
 # Load rules once and periodically evaluate them according to the global 'evaluation_interval'.
 rule_files:
-   - "alert.rules.yml"
+   - "prometheus.rules.yml"
   # - "second_rules.yml"
 
 # A scrape configuration containing exactly one endpoint to scrape:
@@ -82,7 +82,7 @@ scrape_configs:
         secret_key: '${aws_iam_access_key.prom_user_access_key.secret}'
 EOT
 
-sudo cat <<EOT> /etc/prometheus/prometheus.rules.yml
+sudo cat <<EOT> /etc/prometheus/alert.rules.yml
 groups:
   - name: ServerDown
     rules:
